@@ -1,0 +1,43 @@
+# Vagrantfile para VirtualBox (Arquitetura x86_64 - Host Intel/AMD)
+
+Vagrant.configure("2") do |config|
+  
+  # Boxes comuns e estáveis para VirtualBox (x86_64)
+  UBUNTU_BOX = "generic/ubuntu2004" 
+  DEBIAN_BOX = "generic/debian11" 
+
+  # 1. Servidor OpenLDAP
+  config.vm.define "ldap_server" do |ldap|
+    ldap.vm.box = UBUNTU_BOX
+    ldap.vm.hostname = "ldap-server"
+    ldap.vm.network "private_network", ip: "192.168.56.10"
+    
+    # Memória configurada de forma simples para VirtualBox
+    ldap.vm.box_version = "3.0.12" # Versão estável
+    ldap.vm.memory = 1024 
+  end
+
+  # 2. Servidor NAS (NFS)
+  config.vm.define "nas_server" do |nas|
+    nas.vm.box = DEBIAN_BOX 
+    nas.vm.hostname = "nas-server"
+    nas.vm.network "private_network", ip: "192.168.56.20"
+    nas.vm.box_version = "4.0.14" # Versão estável
+    nas.vm.memory = 2048
+  end
+
+  # 3. Workstation Ubuntu
+  config.vm.define "ubuntu_workstation" do |ws|
+    ws.vm.box = UBUNTU_BOX
+    ws.vm.hostname = "ubuntu-ws"
+    ws.vm.network "private_network", ip: "192.168.56.100"
+    ws.vm.box_version = "3.0.12" # Versão estável
+    ws.vm.memory = 1024
+  end
+  
+  # Provisionamento Ansible
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "ansible/playbook.yml"
+    ansible.inventory_path = "ansible/hosts.ini"
+  end
+end

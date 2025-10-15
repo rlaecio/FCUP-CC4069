@@ -1,0 +1,52 @@
+# ===============================
+# 🧱 Vagrant e VirtualBox
+# ===============================
+.vagrant/
+*.box
+*.ova
+*.ovf
+*.vdi
+*.vmdk
+*.log
+*.tmp
+
+# Pastas padrão do VirtualBox
+VirtualBox VMs/
+.vbox/
+*.vbox
+*.vbox-prev
+
+# ===============================
+# 🧰 Ansible
+# ===============================
+*.retry
+*.vault
+*.pyc
+__pycache__/
+
+# ===============================
+# 📦 Sistema / MacOS
+# ===============================
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+Thumbs.db
+
+# ===============================
+# 🧾 Logs e backups
+# ===============================
+*.bak
+*.backup
+*.old
+*.log
+*.out
+
+# ===============================
+# 🧪 Outros temporários
+# ===============================
+*~
+*.tmp
+*.lock
+*.cache/

@@ -1,0 +1,62 @@
+server {
+    server_name qa-apd.portodigital.pt;
+    client_max_body_size 512M;
+    location ~ ^/(o|documents|image|web|group|combo)(/|$) {
+       # Permitir acesso apenas para as sub-redes autorizadas
+    
+            allow 192.168.0.0/24;
+            allow 10.212.134.0/24;
+            allow 185.101.179.188;
+    
+            deny all;
+    
+            #Redirecionar para o site externo em caso de acesso negado
+            error_page 403 =301 https://www.portodigital.pt/;
+    
+    
+
+        proxy_pass http://qa-apd.portodigital.pt:8080;
+        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        
+           access_log off;
+           proxy_set_header X-Forwarded-Proto $scheme;
+           add_header X-Content-Type-Options "nosniff";
+           proxy_read_timeout      3500;
+           proxy_connect_timeout   3250;
+           proxy_set_header        X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-Port $server_port;
+           proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header        SSL_PROTOCOL $ssl_protocol;
+           add_header 'Content-Security-Policy' 'upgrade-insecure-requests';
+           proxy_pass http://qa-apd.portodigital.pt:8080;
+    }
+
+
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/qa-apd.portodigital.pt/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/qa-apd.portodigital.pt/privkey.pem; # managed by Certbot
+#    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+#    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+
+server {
+    if ($host = qa-apd.portodigital.pt) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    server_name qa-apd.portodigital.pt;
+    listen 80;
+    return 404; # managed by Certbot
+
+
+}

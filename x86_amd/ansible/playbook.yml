@@ -1,0 +1,24 @@
+---
+- name: Configurar Servidor OpenLDAP
+  hosts: ldap_server
+  become: yes
+  roles:
+    - ldap_server
+
+- name: Configurar Servidor NAS (NFS/OpenMediaVault)
+  hosts: nas_server
+  become: yes
+  roles:
+    - nas_server
+
+- name: Configurar Workstation Ubuntu (Cliente LDAP e NFS)
+  hosts: linux_clients
+  become: yes
+  roles:
+    - linux_workstation
+
+- name: Configurar Cliente Windows (Cliente LDAP)
+  hosts: windows_clients
+  # Windows usa módulos e conexões diferentes
+  roles:
+    - windows_client
