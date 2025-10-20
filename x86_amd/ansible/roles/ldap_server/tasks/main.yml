@@ -1,33 +1,14 @@
+---
 - name: Instalar pacotes OpenLDAP
-  ansible.builtin.apt:
+  apt:
     name:
-      - slapd         # Servidor LDAP
-      - ldap-utils    # Utilitários como ldapadd
-      - migrationtools # Útil para criar LDIFs
+      - slapd
+      - ldap-utils
     state: present
     update_cache: yes
 
-- name: Definir senha do admin e configurar o domínio (db.ldif)
-  # Nota: Usar 'debconf' para configurar o slapd de forma não interativa é o ideal,
-  # mas a forma mais simples e robusta no Ansible é editar a configuração DIT.
-  ansible.builtin.copy:
-    src: files/base.ldif # Você precisa criar este arquivo (estrutura do seu domínio)
-    dest: /tmp/base.ldif
-
-- name: Importar LDIF de estrutura básica (dc=exemplo,dc=com)
-  ansible.builtin.shell: |
-    # 1. Configurar o arquivo /etc/ldap/ldap.conf
-    # 2. Criar a estrutura básica do domínio (ex: dc=rede,dc=local)
-    ldapadd -Y EXTERNAL -H ldapi:/// -f /tmp/base.ldif
-  args:
-    creates: /var/lib/ldap/DB_CONFIG # Verifica se o banco já existe
-  # Nota: A criação de usuários e grupos via LDIF deve ser feita aqui.
-  # Exemplo de user.ldif:
-  # dn: uid=usuario1,ou=users,dc=rede,dc=local
-  # objectClass: top
-  # objectClass: posixAccount
-  # objectClass: inetOrgPerson
-  # uid: usuario1
-  # cn: Usuario Um
-  # ...
-  # userPassword: {SSHA}... (hash)
+- name: Garantir que o serviço LDAP está ativo
+  service:
+    name: slapd
+    state: started
+    enabled: yes
