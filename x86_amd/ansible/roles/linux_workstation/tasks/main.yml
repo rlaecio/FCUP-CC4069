@@ -1,1 +1,40 @@
----
+- name: Instalar pacotes de cliente LDAP
+  ansible.builtin.apt:
+    name: 
+      - ldap-utils 
+      - libnss-ldap 
+      - libpam-ldap 
+      - nscd
+    state: present
+    update_cache: yes
+
+- name: Configurar o servidor LDAP no ldap.conf
+  ansible.builtin.lineinfile:
+    path: /etc/ldap/ldap.conf
+    regexp: '^BASE'
+    line: "BASE dc=rede,dc=local" # Adapte ao seu domínio
+    state: present
+
+- name: Configurar o URI do servidor LDAP no ldap.conf
+  ansible.builtin.lineinfile:
+    path: /etc/ldap/ldap.conf
+    regexp: '^URI'
+    line: "URI ldap://192.168.56.10/" # IP do ldap_server
+    state: present
+
+# Nota: A configuração do NSS e PAM varia muito entre as versões do Ubuntu.
+# A forma mais robusta é usar o módulo 'community.general.debconf' ou 
+# o comando 'authselect' (se fosse RHEL) ou configurar os arquivos NSS/PAM diretamente.
+
+- name: Configurar /etc/nsswitch.conf para usar LDAP
+  ansible.builtin.lineinfile:
+    path: /etc/nsswitch.conf
+    regexp: '^(passwd|group|shadow):\s+files'
+    line: "\1: files ldap"
+    backrefs: yes # Importante para garantir que a linha seja substituída/editada corretamente
+
+- name: Configurar /etc/pam.d/common-session para criar diretório home no login
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/common-session
+    line: "session required pam_mkhomedir.so skel=/etc/skel/ umask=0022"
+    insertafter: "pam_unix.so"

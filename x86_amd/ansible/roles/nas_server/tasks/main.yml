@@ -1,1 +1,28 @@
----
+- name: Instalar NFS Server
+  ansible.builtin.apt:
+    name: nfs-kernel-server
+    state: present
+    update_cache: yes
+
+- name: Criar diretório de compartilhamento
+  ansible.builtin.file:
+    path: /srv/nfs/dados
+    state: directory
+    mode: '0777' # Permissões de teste abertas, ajuste se necessário
+    owner: nobody
+    group: nogroup
+
+- name: Configurar /etc/exports para compartilhar o diretório
+  ansible.builtin.lineinfile:
+    path: /etc/exports
+    line: "/srv/nfs/dados 192.168.56.0/24(rw,sync,no_subtree_check)"
+    state: present
+
+- name: Exportar compartilhamentos e recarregar o serviço NFS
+  ansible.builtin.command: exportfs -ra
+  
+- name: Garantir que o serviço NFS está rodando
+  ansible.builtin.service:
+    name: nfs-kernel-server
+    state: started
+    enabled: yes
