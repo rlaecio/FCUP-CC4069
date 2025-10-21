@@ -70,18 +70,33 @@ Vagrant.configure("2") do |config|
     win.vm.box = WINDOWS_BOX
     win.vm.hostname = "windows-ws"
     win.vm.network "private_network", ip: "192.168.56.150"
+
+    # --- Comunicação ---
     win.vm.communicator = "winrm"
+    win.winrm.username = "vagrant"
+    win.winrm.password = "vagrant"
+    win.winrm.transport = :plaintext
+    win.winrm.basic_auth_only = true
+
+    # --- Timeout (Windows demora a subir) ---
     win.vm.boot_timeout = 1200
 
+    # --- Provider (VirtualBox) ---
     win.vm.provider "virtualbox" do |vb|
-      vb.memory = 4096
-      vb.cpus = 2
+      vb.memory = 2048
+      vb.cpus = 1
     end
 
+    # --- Expor a porta WinRM 5985 para o host ---
+    # (útil se o Ansible estiver fora do Vagrant, por exemplo no macOS/Linux host)
+    win.vm.network "forwarded_port", guest: 5985, host: 55985, auto_correct: true
+
+    # --- Provisionamento via Ansible ---
     win.vm.provision "ansible" do |ansible|
       ansible.playbook = "ansible/playbook.yml"
       ansible.inventory_path = "ansible/hosts.ini"
       ansible.limit = "windows_clients"
+      ansible.extra_vars = { ansible_forks: 1 }
     end
   end
 end

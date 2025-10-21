@@ -1,9 +1,33 @@
 ---
-- name: Instalar pacote RSAT-LDAP (Windows)
-  win_feature:
-    name: RSAT-AD-PowerShell
-    state: present
-
-- name: Configurar cliente LDAP (exemplo)
+# Instalação do módulo RSAT AD PowerShell (depende do Windows)
+- name: Detectar versão do Windows
   win_shell: |
-    Write-Host "Configuração LDAP simulada no cliente Windows"
+    (Get-CimInstance Win32_OperatingSystem).Caption
+  register: win_version
+
+- name: Mostrar versão detectada
+  debug:
+    var: win_version.stdout
+
+- name: Instalar RSAT Active Directory Tools
+  win_shell: |
+    $ver = (Get-CimInstance Win32_OperatingSystem).Caption
+    if ($ver -match "Windows Server") {
+        Install-WindowsFeature RSAT-AD-PowerShell -IncludeAllSubFeature -ErrorAction SilentlyContinue
+    } else {
+        Add-WindowsCapability -Online -Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0 -ErrorAction SilentlyContinue
+    }
+  register: rsat_install
+  changed_when: "'successfully' in rsat_install.stdout"
+
+- name: Confirmar instalação do módulo AD
+  win_shell: |
+    Import-Module ActiveDirectory
+    Get-Command Get-ADUser | Out-Null
+    Write-Host "RSAT LDAP disponível"
+  register: ad_test
+  failed_when: ad_test.rc != 0
+
+- name: Configurar cliente LDAP (simulação)
+  win_shell: |
+    Write-Host "Cliente Windows configurado para usar LDAP centralizado"
