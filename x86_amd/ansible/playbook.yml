@@ -19,6 +19,7 @@
 
 - name: Configurar Cliente Windows (Cliente LDAP)
   hosts: windows_clients
+  gather_facts: no
   # Windows usa módulos e conexões diferentes
   roles:
     - windows_client
